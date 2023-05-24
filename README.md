@@ -236,7 +236,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 ```
 
-コマンド
+インストール コマンド
 
 ```
 flutter pub get
@@ -312,34 +312,6 @@ flutter pub get
 
 ```
 
-### 予約済みのローカル通知の数を取得する
-
-#### lib/main.dart 編集
-
-```
- @override
- void initState() {
-   super.initState();
-
-   _requestIOSPermission();
-   _initializePlatformSpecifics();
-   //_showNotification(); //
-   _scheduleNotification();
-
-  // 追加
-   _getPendingNotificationCount().then((value) =>
-       debugPrint('getPendingNotificationCount:' + value.toString()));
- }
-
- // ここから追加
- Future<int> _getPendingNotificationCount() async {
-   List<PendingNotificationRequest> p =
-       await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-   return p.length;
- }
- // ここまで追加
-```
-
 ### 予約済みのローカル通知をキャンセルする
 
 #### lib/main.dart 編集
@@ -349,15 +321,9 @@ flutter pub get
 ```
 @override
  void initState() {
-   super.initState();
+    _initializePlatformSpecifics();
+   .................
 
-   _requestIOSPermission();
-   _initializePlatformSpecifics();
-   //_showNotification(); //
-   _scheduleNotification();
-
-   _getPendingNotificationCount().then((value) =>
-       debugPrint('getPendingNotificationCount:' + value.toString()));
 
    // 追加
    _cancelNotification().then((value) => debugPrint('cancelNotification'));
@@ -413,7 +379,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -428,7 +393,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
-
   @override
   MyHomePageState createState() => MyHomePageState();
 }
@@ -442,24 +406,16 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
     // 通知パーミッション許可ダイアログの表示
     if (Platform.isIOS) {
       _requestIOSPermission();
     }
-
     // タイムゾーンデータベースの初期化
     tz.initializeTimeZones();
     // ローカルロケーションのタイムゾーンを東京に設定
     tz.setLocalLocation(tz.getLocation("Asia/Tokyo"));
 
     _initializePlatformSpecifics();
-
-    // 設定済みの通知数を取得
-    _getPendingNotificationCount().then((value) {
-      debugPrint('getPendingNotificationCount:$value');
-    });
-
     // 設定済みの通知をすべてキャンセル
     _cancelAllNotification().then((value) => debugPrint('cancelNotification'));
   }
@@ -499,6 +455,8 @@ class MyHomePageState extends State<MyHomePage> {
     var androidChannelSpecifics = const AndroidNotificationDetails(
       'CHANNEL_ID',
       'CHANNEL_NAME',
+      icon: 'app_icon',
+      largeIcon: DrawableResourceAndroidBitmap('app_icon'),
       channelDescription: "CHANNEL_DESCRIPTION",
       importance: Importance.max,
       priority: Priority.high,
@@ -519,24 +477,23 @@ class MyHomePageState extends State<MyHomePage> {
 
     await flutterLocalNotificationsPlugin.show(
       0, // Notification ID
-      'Test Title', // Notification Title
-      'Test Body', // Notification Body, set as null to remove the body
+      'Notification Title', // Notification Title
+      'Notification Body', // Notification Body, set as null to remove the body
       platformChannelSpecifics,
-      payload: 'New Payload', // Notification Payload
+      payload: 'Notification Payload', // Notification Payload
     );
   }
 
   Future<void> _scheduleNotification() async {
     var scheduleNotificationDateTime =
         DateTime.now().add(Duration(seconds: scheduleAddSec));
-
     var androidChannelSpecifics = const AndroidNotificationDetails(
       'CHANNEL_ID 1',
       'CHANNEL_NAME 1',
       channelDescription: "CHANNEL_DESCRIPTION 1",
       icon: 'app_icon',
       //sound: RawResourceAndroidNotificationSound('my_sound'),
-      //largeIcon: DrawableResourceAndroidBitmap('app_icon'),
+      largeIcon: DrawableResourceAndroidBitmap('app_icon'),
       enableLights: true,
       color: Color.fromARGB(255, 255, 0, 0),
       ledColor: Color.fromARGB(255, 255, 0, 0),
@@ -560,21 +517,15 @@ class MyHomePageState extends State<MyHomePage> {
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       scheduleId,
-      'Test Title',
-      'Test Body',
+      'Notification Title',
+      'Notification Body',
       tz.TZDateTime.from(scheduleNotificationDateTime, tz.local),
       platformChannelSpecifics,
-      payload: 'Test Payload',
+      payload: 'Schedule Notification Test Payload',
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );
-  }
-
-  Future<int> _getPendingNotificationCount() async {
-    List<PendingNotificationRequest> p =
-        await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-    return p.length;
   }
 
   Future<void> _cancelNotification(int id) async {
@@ -584,7 +535,6 @@ class MyHomePageState extends State<MyHomePage> {
   Future<void> _cancelAllNotification() async {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
-  // ここまで追加
 
   @override
   void dispose() {
