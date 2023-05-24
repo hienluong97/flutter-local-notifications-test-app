@@ -10,7 +10,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -25,7 +24,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
-
   @override
   MyHomePageState createState() => MyHomePageState();
 }
@@ -39,26 +37,18 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
     // 通知パーミッション許可ダイアログの表示
     if (Platform.isIOS) {
       _requestIOSPermission();
     }
-
     // タイムゾーンデータベースの初期化
     tz.initializeTimeZones();
     // ローカルロケーションのタイムゾーンを東京に設定
     tz.setLocalLocation(tz.getLocation("Asia/Tokyo"));
 
     _initializePlatformSpecifics();
-
-    // 設定済みの通知数を取得
-    _getPendingNotificationCount().then((value) {
-      debugPrint('getPendingNotificationCount:$value');
-    });
-
     // 設定済みの通知をすべてキャンセル
-    _cancelAllNotification().then((value) => debugPrint('cancelNotification'));
+    cancelAllNotification().then((value) => debugPrint('cancelNotification'));
   }
 
   void _requestIOSPermission() {
@@ -92,7 +82,7 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<void> _showNotification() async {
+  Future<void> showNotification() async {
     var androidChannelSpecifics = const AndroidNotificationDetails(
       'CHANNEL_ID',
       'CHANNEL_NAME',
@@ -121,14 +111,13 @@ class MyHomePageState extends State<MyHomePage> {
       'Notification Title', // Notification Title
       'Notification Body', // Notification Body, set as null to remove the body
       platformChannelSpecifics,
-      payload: 'New Payload', // Notification Payload
+      payload: 'Notification Payload', // Notification Payload
     );
   }
 
-  Future<void> _scheduleNotification() async {
+  Future<void> scheduleNotification() async {
     var scheduleNotificationDateTime =
         DateTime.now().add(Duration(seconds: scheduleAddSec));
-
     var androidChannelSpecifics = const AndroidNotificationDetails(
       'CHANNEL_ID 1',
       'CHANNEL_NAME 1',
@@ -163,24 +152,18 @@ class MyHomePageState extends State<MyHomePage> {
       'Notification Body',
       tz.TZDateTime.from(scheduleNotificationDateTime, tz.local),
       platformChannelSpecifics,
-      payload: 'Test Payload',
+      payload: 'Schedule Notification Test Payload',
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
-  Future<int> _getPendingNotificationCount() async {
-    List<PendingNotificationRequest> p =
-        await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-    return p.length;
-  }
-
-  Future<void> _cancelNotification(int id) async {
+  Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
   }
 
-  Future<void> _cancelAllNotification() async {
+  Future<void> cancelAllNotification() async {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
@@ -201,19 +184,19 @@ class MyHomePageState extends State<MyHomePage> {
           children: [
             ElevatedButton(
               onPressed: () {
-                _showNotification(); // 通知をすぐに表示
+                showNotification(); // 通知をすぐに表示
               },
               child: const Text('すぐに通知を表示'),
             ),
             ElevatedButton(
               onPressed: () {
-                _scheduleNotification(); // 指定日時に通知を表示
+                scheduleNotification(); // 指定日時に通知を表示
               },
               child: Text('指定日時に通知を表示（$scheduleAddSec秒後）'),
             ),
             ElevatedButton(
               onPressed: () {
-                _cancelNotification(scheduleId);
+                cancelNotification(scheduleId);
               },
               child: const Text('設定済みの通知を削除'),
             ),

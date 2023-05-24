@@ -2,6 +2,8 @@
 
 ### 利用パッケージ
 
+flutter: 3.10.1
+
 flutter_local_notifications : 12.0.0
 
 ### flutter_local_notifications パッケージのインストール
